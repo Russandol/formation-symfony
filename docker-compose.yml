@@ -1,0 +1,52 @@
+version: "3.9"
+services:
+  web:
+    build: .
+    links:
+      - mariadb
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/app
+    environment:
+      - PHP_DEBUGGER=xdebug
+      - PHP_IDE_CONFIG=serverName=lonewolf-api.test
+      - XDEBUG_CLIENT_HOST=host.docker.internal
+      - XDEBUG_OUTPUT_DIR="/tmp/debug"
+      - PHP_DATE_TIMEZONE=Europe/Paris
+      - PHP_MAX_EXECUTION_TIME=300
+      - PHP_POST_MAX_SIZE=8M
+      - PHP_UPLOAD_MAX_FILESIZE=3M
+      - PHP_DISPLAY_ERRORS=1
+      - WEB_ALIAS_DOMAIN=lonewolf-api.test
+      - WEB_DOCUMENT_ROOT=/app/public
+      - PHP_DISMOD=ioncube
+
+  mariadb:
+    image: mariadb:10.5.9
+    ports:
+      - "3306:3306"
+    volumes:
+      - data:/var/lib/mysql
+      - ./.docker/mysql:/etc/mysql/conf.d
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=lonewolf
+      - MYSQL_USER=db
+      - MYSQL_PASSWORD=db
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    links:
+      - mariadb
+    ports:
+      - "8080:80"
+    environment:
+      - PMA_HOST=mariadb
+      - MYSQL_USER=db
+      - MYSQL_PASSWORD=db
+      - MYSQL_ROOT_PASSWORD=root
+
+volumes:
+  data:
